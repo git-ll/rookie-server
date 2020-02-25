@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    	<meta charset="utf-8">
+    	<title>重置密码</title>
+	<link type="text/css" rel="stylesheet" href="login.css"></link>
+	<script type="text/javascript" src="login.js"></script>
+	</script>
+</head>
+
+<body>
+<div class="main" style="height:360px;">
+    <div class="title">
+        <span>重置密码</span>
+    </div>
+ 
+    <form class="register-form">
+
+        <div class="input-content" style="height: 220px">
+
+            <!--autoFocus-->
+          
+	    <div style="margin-top: 10px">
+                <input type="text" autocomplete="off" placeholder="用户名" id="ACC" name="username" oninput="value=value.replace(/[^\w\.\/]/ig,'')" maxlength="32"/>
+            </div>
+
+	    <div style="margin-top: 10px">
+                <input type="text" autocomplete="off" placeholder="身份识别码" id="PIN" name="phonenum" oninput = "value=value.replace(/[^\d]/g,'')" maxlength="11"/>
+            </div>
+ 
+            <div style="margin-top: 10px">
+                <input type="password" autocomplete="off" placeholder="设置密码" id="PWD" name="password" oninput="value=value.replace(/\s+/g,'')" maxlength="32"/>
+            </div>
+
+	    <div style="margin-top: 10px">
+                <input type="password" autocomplete="off" placeholder="确认密码" id="PWD2" oninput="value=value.replace(/\s+/g,'')" maxlength="32"/>
+            </div>
+        </div>
+ 
+        <div style="text-align: center">
+            <button type="button" class="enter-btn" style="margin-top: -30px;" onclick="resetpwd();">重置</button>
+        </div>
+ 
+        <div class="foor">
+            <div class="right"><a href="index.html"><span>已有账户？返回登录</span></div>
+        </div>
+    </form>
+</div>
+</body>
+
+</html>
