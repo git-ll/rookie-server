@@ -25,8 +25,6 @@ namespace rookie
     class LogOutput : noncopyable
     {
     public:
-
-        //typedef std::function<void(const char* msg, size_t len)> OutputFunc;   //由于LogOutput类会频繁调用，因此std::function的效率还是不容忽视的，还是使用函数指针
         typedef void (*OutputFunc)(const char* msg, size_t len);
         typedef void (*FlushFunc)();
 

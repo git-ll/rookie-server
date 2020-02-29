@@ -40,9 +40,6 @@ namespace rookie
         std::unique_ptr<EventLoopThreadPool>pool_;
         std::unique_ptr<Socket>acceptsock_;
         std::unique_ptr<Channel>acceptChannel_;
-        std::unique_ptr<Channel>hbChannel_;      //心跳包channel
-        int hbcycle_;   //心跳周期
-        int hblimit_;   //心跳次数阈值
         std::unordered_map<int,ConnectionPtr>ConnectionMap;   //ConnectionMap的作用主要用于延长Connection的生命周期
         MessageCb messageCb;  //为所有连接指定消息处理函数
     };

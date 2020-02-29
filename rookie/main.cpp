@@ -10,10 +10,9 @@
 #include <sys/stat.h>
 
 using namespace rookie;
+using namespace std;
 
 static MYSQL db;
-static MYSQL_RES* res = nullptr;
-static MYSQL_ROW row;
 
 static string indexstr;
 static string favstr;
@@ -90,22 +89,27 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
                 char acc[32];
                 char query[128];
                 char resstr[1024];
+                MYSQL_RES* res = nullptr;
+                MYSQL_ROW row;
                 sscanf(pos,"/home.html&%s",acc);
                 sprintf(query,"select nickname from users where username='%s'",acc);
 
                 if(mysql_real_query(&db,query,strlen(query)))
                 {
                     LOG_ERROR<<"Query failed ."<<mysql_error(&db);
+                    return;
                 }
 
                 if(!(res = mysql_store_result(&db)))
                 {
                     LOG_ERROR<<"Get result failed ."<<mysql_error(&db);
+                    return;
                 }
 
                 if(!(row = mysql_fetch_row(res)))
                 {
                     LOG_ERROR<<"fetch row failed ."<<mysql_error(&db);
+                    return;
                 }
                 sprintf(resstr,"<!DOCTYPE html>    \
                                    <html lang=\"en\"> \
@@ -125,6 +129,7 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
                 response->setStateReason("OK");
                 response->setContentType("text/html");
                 response->setBody(resstr);
+                mysql_free_result(res);
             }
             else
             {
@@ -142,6 +147,8 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
             char username[32];
             char password[32];
             char query[128];
+            MYSQL_RES* res = nullptr;
+            MYSQL_ROW row;
             sscanf(UrlDecode(request->body()).c_str(),"ACC=%s PWD=%s",username,password);
 
             //数据库验证....
@@ -183,8 +190,10 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
                 else
                 {
                     LOG_ERROR<<"fetch row failed ."<<mysql_error(&db);
+                    return;
                 }
             }
+            mysql_free_result(res);
         }
         else if(request->isURL("/user/register"))
         {
@@ -193,7 +202,7 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
             char password[32] = {0};
             char identifier[11] = {0};
             char query[1024];
-
+            MYSQL_RES* res = nullptr;
             sscanf(UrlDecode(request->body()).c_str(),"NICK=%s ACC=%s PWD=%s PIN=%s",nickname,username,password,identifier);
 
             //数据库插入....
@@ -202,11 +211,13 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
             if(mysql_real_query(&db,query,strlen(query)))
             {
                 LOG_ERROR<<"Query failed ."<<mysql_error(&db);
+                return;
             }
 
             if(!(res = mysql_store_result(&db)))
             {
                 LOG_ERROR<<"Get result failed ."<<mysql_error(&db);
+                return;
             }
 
             response->setStatus(OK);
@@ -228,6 +239,7 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
             {
                 response->setBody("exist");
             }
+            mysql_free_result(res);
         }
         else if(request->isURL("/user/resetpwd"))
         {
@@ -235,7 +247,8 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
             char password[32];
             char identifier[11];
             char query[1024];
-
+            MYSQL_RES* res = nullptr;
+            MYSQL_ROW row;
             sscanf(UrlDecode(request->body()).c_str(),"ACC=%s PWD=%s PIN=%s",username,password,identifier);
 
             sprintf(query,"select identifier from users where username='%s'",username);
@@ -243,11 +256,13 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
             if(mysql_real_query(&db,query,strlen(query)))
             {
                 LOG_ERROR<<"Query failed ."<<mysql_error(&db);
+                return;
             }
 
             if(!(res = mysql_store_result(&db)))
             {
                 LOG_ERROR<<"Get result failed ."<<mysql_error(&db);
+                return;
             }
 
             response->setStatus(OK);
@@ -280,15 +295,13 @@ void OnRequest(httpRequest *request, httpResponse *response)   //request已经�
                 else
                 {
                     LOG_ERROR<<"fetch row failed ."<<mysql_error(&db);
+                    return;
                 }
             }
-
+            mysql_free_result(res);
         }
-
     }
-
 }
-using namespace std;
 
 string readStrFromFile(const char* path)
 {
@@ -363,7 +376,6 @@ int main(int argc, char* argv[])
     HttpServer server(addr.c_str(),atoi(port.c_str()));
     server.setRequestCallBack(OnRequest);
     server.start();
-
 
     /*TCPServer server("127.0.0.1",8888,4);
     server.start();*/

@@ -51,8 +51,6 @@ namespace rookie
         const char* ip_;
         EventLoop* loop_;
         std::unique_ptr<Channel>channel_;     //每一条连接都对应一个Channel，其生命周期由Connection控制  注意，unique_ptr并不一定是好的办法，可能Channel正在执行handleChannel，如果销毁了Channel就会出错
-        //std::unique_ptr<Channel>hbChannel_;   //心跳包channel
-        //int hbcount_;    //心跳计数
         std::vector<char>rdbuf_;
         MessageCb messageCb;     //处理接收消息的函数
         CloseCb closeCb;   //连接断开时的处理函数

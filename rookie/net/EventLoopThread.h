@@ -28,21 +28,6 @@ namespace rookie
         MutexLock mutex_;
         Condition cv_;
     };
-
-    /*class EventLoopThread :noncopyable
-    {
-    public:
-        EventLoopThread();
-        ~EventLoopThread();
-        EventLoop* startLoop();
-
-    private:
-        void threadFunc();
-        EventLoop *loop_;
-        Thread thread_;
-        MutexLock mutex_;
-        Condition cond_;
-    };*/
 }
 
 

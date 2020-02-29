@@ -1,14 +1,3 @@
-/*****************************
- *
- *     @Name TimerHeap.cpp
- *
- *     @Date 19-11-29
- *
- *     @Author Liu Lei
- * 
- *     @Email  liulei805@qq.com
- *
- *****************************/
 
 #include <cstring>
 #include "Timer.h"
