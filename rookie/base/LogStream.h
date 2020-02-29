@@ -112,6 +112,11 @@ namespace rookie
             this->append(str.c_str(),str.size());
             return *this;
         }
+        self& operator<<(const string& str)
+        {
+            this->append(str.c_str(),str.size());
+            return *this;
+        }
         self& operator<<(string&& str)
         {
             this->append(str.c_str(),str.size());

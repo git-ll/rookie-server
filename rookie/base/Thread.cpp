@@ -10,26 +10,7 @@
 
 namespace rookie
 {
-    int Thread::threadNum_ = 0;
-
-
-    /*Thread::Thread(ThreadFunc func,
-                   std::string&& threadname)
-            :func_(std::move(func)),
-             threadName_(std::move(threadname)),
-             started_(false),
-             joined_(false),
-             tid_(0),
-             pid_(0)
-    {
-        __sync_fetch_and_add(&threadNum_,1);
-        if(threadName_.empty())
-        {
-            char buf[32];
-            snprintf(buf, sizeof buf, "Thread%d", threadNum_);
-            threadName_ = buf;
-        }
-    }*/
+    int Thread::threadNum_ = 0;   //用来标识已经创建的线程数量
 
     Thread::Thread(ThreadFunc func,
                    const string& threadname)
@@ -91,9 +72,10 @@ namespace rookie
         catch (const std::exception& ex)   //出现异常
         {
             ThreadLocalInfo::TL_threadName = "crashed";
-            fprintf(stderr, "exception caught in Thread %s\n", data->name_.c_str());
-            fprintf(stderr, "reason: %s\n", ex.what());
-            abort();
+            //fprintf(stderr, "exception caught in Thread %s\n", data->name_.c_str());
+            //fprintf(stderr, "reason: %s\n", ex.what());
+            //abort();
+            LOG_FATAL<<"exception caught in Thread "<<data->name_.c_str()<<" reason : "<<ex.what();
         }
         catch (...)
         {

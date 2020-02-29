@@ -23,10 +23,10 @@ EventLoopThread::~EventLoopThread()
 {
         if(loop_)
         {
-                LOG_DEBUG << "wait for end";
+                LOG_INFO << "Wait for EventLoopThread " << thread_->name()<<" exit";
                 loop_->exit();
                 thread_->join();
-                LOG_DEBUG << "OVER";
+                LOG_INFO << "EventLoopThread "<< thread_->name()<<" exit";
         }
 }
 
@@ -55,49 +55,5 @@ void EventLoopThread::threadFun()    //运行于子线程
         loop_->loop();
         loop_ = nullptr;
 }
-
-
-/*EventLoopThread::EventLoopThread()
-        :   loop_(NULL),
-            thread_(std::bind(&EventLoopThread::threadFunc, this), "EventLoopThread"),
-            mutex_(),
-            cond_(mutex_)
-{ }
-
-EventLoopThread::~EventLoopThread()
-{
-        if (loop_ != NULL)
-        {
-                loop_->exit();
-                thread_.join();
-        }
-}
-
-EventLoop* EventLoopThread::startLoop()
-{
-        thread_.start();
-        {
-                MutexLockGuard lock(mutex_);
-                // 一直等到threadFun在Thread里真正跑起来
-                while (loop_ == NULL)
-                        cond_.wait();
-        }
-        return loop_;
-}
-
-void EventLoopThread::threadFunc()
-{
-        EventLoop loop;
-
-        {
-                MutexLockGuard lock(mutex_);
-                loop_ = &loop;
-                cond_.notify();
-        }
-
-        loop.loop();
-        //assert(exiting_);
-        loop_ = NULL;
-}*/
 
 

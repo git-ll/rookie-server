@@ -156,6 +156,7 @@ void HttpServer::OnMessage(const rookie::ConnectionPtr &conn, const char *msg, s
     httpResponse response;  //Http响应
     if(parseHttpRequest(msg,&request) == -1) //将收到的数据解析为Http请求格式
     {
+        //请求无效
         responseStr = "HTTP/1.1 400 Bad Request\r\nContent-Length: 11\r\nConnection: close\r\n\r\nBad Request\r";
     }
     else
