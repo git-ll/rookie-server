@@ -14,10 +14,10 @@ Intel(R) Core(TM) i5-7300HQ CPU @ 2.50GHz 4核4线程
 #测试结果
 ##1.与muduo的QPS测试结果对比
 muduoQPS:
-![avatar](./pic/muduoQPS.png)
+![avatar](pic/muduoQPS.png)
 
 rookieQPS:
-![avatar](./pic/rookieQPS.png)
+![avatar](pic/rookieQPS.png)
 
 结果表明，rookie的QPS会高于muduo，可能有以下原因：
 ①rookie没有使用应用层缓冲区，直接通过栈上数组接收数据后立刻发回，而muduo则是使用了vector<char>作为应用层缓冲区，这可能是其中一个原因；
@@ -25,13 +25,13 @@ rookieQPS:
 
 ##2.不同线程下QPS以及CPU负载对比
 2线程：
-![avatar](./pic/2.png)![avatar](./pic/2CPU.png)
+![avatar](pic/2.png)![avatar](pic/2CPU.png)
 4线程：
-![avatar](./pic/4.png)![avatar](./pic/4CPU.png)
+![avatar](pic/4.png)![avatar](pic/4CPU.png)
 6线程：
-![avatar](./pic/6.png)![avatar](./pic/6CPU.png)
+![avatar](pic/6.png)![avatar](pic/6CPU.png)
 8线程：
-![avatar](./pic/8.png)![avatar](./pic/8CPU.png)
+![avatar](pic/8.png)![avatar](pic/8CPU.png)
 
 对比可知，在4个线程的情况下，CPU使用率较高，并且QPS也是最高的。
 
