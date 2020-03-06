@@ -27,20 +27,20 @@ Epoll::~Epoll()
 
 void Epoll::epoll_update(Channel* channel)
 {
-    int fd = channel->fd_;
+    int fd = channel->fd();
     epoll_event event={};
     memset(&event,0,sizeof(event));
     event.data.fd = fd;
-    event.events = channel->events_ | EPOLLET;    //ET模式
+    event.events = channel->events() | EPOLLET;    //ET模式
     ChannelMap[fd] = channel;
-    if(!(channel->state_ & EVSTATE_INSERT)) //如果未添加，就添加
+    if(!(channel->state() & EVSTATE_INSERT)) //如果未添加，就添加
     {
         LOG_DEBUG<<"Epoll::epoll_update : channel not exists,ready to add fd "<<fd;
         if(epoll_ctl(epollfd_,EPOLL_CTL_ADD,fd,&event)<0)
         {
             LOG_FATAL<<"Epoll::epoll_add"<<errno;
         }
-        channel->state_ |= EVSTATE_INSERT;
+        channel->setstate(channel->state() | EVSTATE_INSERT);
         LOG_DEBUG<<"channel added fd "<<fd;
         nChannel++;
     }
@@ -57,15 +57,15 @@ void Epoll::epoll_update(Channel* channel)
 
 void Epoll::epoll_remove(Channel* channel)
 {
-    if(channel->state_ & EVSTATE_INSERT)
+    if(channel->state() & EVSTATE_INSERT)
     {
-        if(epoll_ctl(epollfd_,EPOLL_CTL_DEL,channel->fd_,nullptr) < 0)
+        if(epoll_ctl(epollfd_,EPOLL_CTL_DEL,channel->fd(),nullptr) < 0)
         {
             LOG_FATAL<<"Epoll::epoll_del";
         }
         //ChannleMap[channel->fd_] = nullptr;
-        channel->state_ = EVSTATE_NONE;  //暂时不从ChannelMap中删除，只是设置channel的标志为NONE
-        LOG_DEBUG<<"channel deleted with fd "<<channel->fd_;
+        channel->setstate(EVSTATE_NONE);  //暂时不从ChannelMap中删除，只是设置channel的标志为NONE
+        LOG_DEBUG<<"channel deleted from epoll with fd "<<channel->fd();
         nChannel--;
     }
     else
@@ -85,7 +85,7 @@ void Epoll::epoll_dispatch(int timeout)
     }
     else if(nevents == 0)
     {
-        LOG_INFO<<"epoll_wait nothing happened";
+        LOG_DEBUG<<"epoll_wait nothing happened";
     }
     else
     {
@@ -94,7 +94,7 @@ void Epoll::epoll_dispatch(int timeout)
             auto p = ActiveEvents[i];
             LOG_DEBUG<<"active fd "<<p.data.fd;
             auto channel = ChannelMap[p.data.fd];
-            channel->revents_ = p.events;
+            channel->setrevents(p.events);
             loop_->activeChannel(channel);
         }
         if(nevents == MAXEVENTS)

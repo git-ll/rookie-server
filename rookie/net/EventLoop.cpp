@@ -11,6 +11,7 @@
 #include <sys/unistd.h>
 #include <Mutex.h>
 #include <sys/timerfd.h>
+#include "TimerWheel.h"
 
 using namespace rookie;
 
@@ -19,7 +20,7 @@ EventLoop::EventLoop()
            stop_(false),
            iswaiting_(false),
            poller_(this),
-           timer_(new Timer(this)),    //一个Timer实例，其中的loop指针指向该EventLoop
+           timer_(new TimerWheel(this,60)),    //一个Timer实例，其中的loop指针指向该EventLoop
            wakefd_(eventfd(0,EFD_NONBLOCK|EFD_CLOEXEC)),
            wakeChannel_(new Channel(wakefd_,this)),  //用于唤醒EventLoop所用的channel
            hbfd_(timerfd_create(CLOCK_MONOTONIC,TFD_NONBLOCK)),
@@ -34,6 +35,8 @@ EventLoop::EventLoop()
     wakeChannel_->enableChannel(EV_READ);
     hbChannel_->setReadCallBack(std::bind(&EventLoop::hbReadCallBack,this));
     hbChannel_->enableChannel(EV_READ);
+    LOG_DEBUG<<"Wake channel of fd "<<wakefd_;
+    LOG_DEBUG<<"HeartBeat channel of fd "<<hbfd_;
 }
 
 EventLoop::~EventLoop()
@@ -42,27 +45,26 @@ EventLoop::~EventLoop()
     ::close(hbfd_);
 }
 
-void EventLoop::updateChannle(Channel* channel,bool timeout)
+void EventLoop::updateChannle(Channel* channel,int timeout)
 {
     assert(channel);
-    if(timeout)  //由于调用该函数的线程和执行loop的io线程可能不是同一个线程，因此对于timer_就会存在线程安全问题，应该将添加定时器的操作放到io线程中进行
+    if(timeout!=-1)  //由于调用该函数的线程和执行loop的io线程可能不是同一个线程，因此对于timer_就会存在线程安全问题，应该将添加定时器的操作放到io线程中进行
     {
-        timer_->addTimer(channel);   //添加到定时器中
-        if(channel->events_ == EV_TIMEOUT)  //如果只是个纯超时事件，就不用添加到epoll中了
+        timer_->addTimer(channel,timeout);   //添加到定时器中
+        if(channel->events() == EV_TIMEOUT)  //如果只是个纯超时事件，就不用添加到epoll中了
             return;
     }
-    //runInLoop(std::bind(&Epoll::epoll_update,&poller_,channel));//即使是超时channel也应该添加到epoll中，因为在等待超时的过程中channel也有可能被激活
     poller_.epoll_update(channel);
 }
 
 void EventLoop::removeChannle(Channel* channel)
 {
     assert(channel);
-    channel->events_ = EV_NONE;
-    if(channel->state_ & EVSTATE_TIMEOUT)
+    channel->setevents(EV_NONE);
+    if(channel->state() & EVSTATE_TIMEOUT)
     {
         timer_->removeTimer(channel);
-        if(channel->events_ == EV_TIMEOUT)  //如果只是个纯超时事件，就不用从epoll中删除了
+        if(channel->events() == EV_TIMEOUT)  //如果只是个纯超时事件，就不用从epoll中删除了
             return;
     }
     runInLoop(std::bind(&Epoll::epoll_remove,&poller_,channel));//放到io线程中执行，确保poller中ChannelMap的线程安全
@@ -78,13 +80,10 @@ void EventLoop::loop()
     val.it_value.tv_sec = 1;     //1s后开始定时
     val.it_interval.tv_sec = hbcycle_;    //每隔hbcycle_时间就触发一次
     timerfd_settime(hbfd_,0,&val, nullptr);
-    //如果在这两句之间EventLoopThread对象析构，调用exit函数让stop_为true怎么办？
     while(!stop_)
     {
         ActiveChannels_.clear();
-        int timeout = timer_->getFirstTimeOut();
-        LOG_DEBUG<<"EventLoop dispatch with timeout "<<timeout;
-        poller_.epoll_dispatch(timeout);
+        poller_.epoll_dispatch(1000);
         handleTimeOuts();   //将定时器中超时的事件添加到激活队列中
         processChannels();  //处理所有激活的事件
         doPendingFunctors();
@@ -116,15 +115,19 @@ void EventLoop::wakeupLoop()
 
 void EventLoop::handleTimeOuts()   //由epoll_dispatch调用
 {
-    timer_->handleTimeOuts();
+    timer_->handleTimeOut();
 }
 
 void EventLoop::activeChannel(Channel* channel)
 {
     ActiveChannels_.push_back(channel);//考虑优先级？？？
-    if(channel->events_ & EV_TIMEOUT) //如果是超时事件，那么不管是否因超时而激活都将其从epoll中删除
+    if(channel->events() & EV_TIMEOUT) //如果是超时事件，那么不管是否因超时而激活都将其从epoll中删除
     {
-        removeChannle(channel);
+        if(channel->state() & EVSTATE_INSERT)
+        {
+            LOG_DEBUG<<"channel of fd "<<channel->fd()<<" time out, ready to remove it from epoll";
+            removeChannle(channel);
+        }
         LOG_DEBUG<<"channel removed with fd "<<channel->fd();
     }
 }

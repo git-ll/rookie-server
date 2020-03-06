@@ -20,6 +20,7 @@ Connection::Connection(EventLoop* ioloop,int connfd, sockaddr_in peer)
     ip_ = inet_ntoa(peer.sin_addr);
     port_ = ntohs(peer.sin_port);
     channel_->setReadCallBack(std::bind(&Connection::connRead,this));
+
     LOG_INFO<<"new Connection ["<<ip_<<":"<<port_<<"] of fd "<<fd();
 }
 
@@ -48,7 +49,6 @@ void Connection::connRead()
         if(n == 0)  //如果没有及时关闭fd，那么就会反复触发可读事件(LT)，如果是ET模式，就不会
         {
             //关闭连接,并在runinloop中销毁Connection实例
-            LOG_DEBUG<<"read 0 bytes from fd "<<fd();
             connClose();
             return;
         }
@@ -84,8 +84,8 @@ void Connection::connRead()
 
 void Connection::connWrite(const char* msg,size_t len)
 {
+    channel_->setWriteCallBack(std::bind(&Connection::sendMsg,this,msg,len));  //必须先设置写回调，再监听写
     channel_->enableChannel(EV_READ|EV_WRITE);
-    channel_->setWriteCallBack(std::bind(&Connection::sendMsg,this,msg,len));
 }
 
 void Connection::sendMsg(const char* msg,size_t len)
@@ -113,15 +113,13 @@ void Connection::sendMsg(const char* msg,size_t len)
             writelen+=n;
         }
     }
+    //LOG_INFO<<writelen<<" bytes has writen to ["<<peerip_<<":"<<peerport_<<"]:"<<string(msg,len);
 }
 
 void Connection::connClose()
 {
     isConnect_ = false;
-
-    closeCb(shared_from_this());//调用closeCb时会增加一次引用计数  由于前面ConnectionMap的存在，因此shared_from_this能够成功
-    //****connRead函数必定是在handleChannel中调用的，因此可以让Connection的销毁放到pendingFunctors中，这样就能保证Connection的销毁在handleChannel之后
-    //****Connection的销毁应该有：处理ConnectionMap，销毁Channle以及关闭Socket，用shared_from_this可以让pendingFunctors执行结束后Connection自行销毁。
+    closeCb(shared_from_this());
 }
 
 void Connection::connError()

@@ -3,14 +3,14 @@ set(SRC_NET
         Socket.cpp
         Channel.cpp
         Epoll.cpp
-        Timer.cpp
         Util.cpp
         EventLoopThread.cpp
         EventLoopThreadPool.cpp
-        TimerHeap.cpp
         TCPServer.cpp
         Connection.cpp
-        HttpServer.cpp HttpData.h HttpData.cpp)
+        HttpServer.cpp
+        HttpData.cpp
+        TimerWheel.cpp)
 
 include_directories("../base/")
 

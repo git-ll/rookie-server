@@ -15,11 +15,11 @@ using namespace rookie;
 
 void defaultMessageCallBack(const ConnectionPtr& conn,const char* buf,ssize_t len)
 {
-    time_t tm = time(nullptr) + 8*60*60;
-    struct tm t = {};
-    gmtime_r(&tm,&t);
+    //time_t tm = time(nullptr) + 8*60*60;
+    //struct tm t = {};
+    //gmtime_r(&tm,&t);
 
-    printf("%04d%02d%02d %02d:%02d:%02d [%s:%d] : %s", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec,conn->peerip(),conn->peerport(),buf);
+    //printf("%04d%02d%02d %02d:%02d:%02d [%s:%d] : %s", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec,conn->peerip(),conn->peerport(),buf);
     conn->connWrite(buf,len);
 }
 
@@ -127,8 +127,7 @@ void TCPServer::removeConnection(const ConnectionPtr& conn)   //当Connection需
     //此时Connection的引用计数为1，但是当removeConnection结束后这一次引用计数就会减少
     conn->getLoop()->runInLoop([conn]{
         conn->channel()->disableChannel();
-        conn->getLoop()->eraseFd(conn->fd());
-                        });
+        conn->getLoop()->eraseFd(conn->fd());});
     ConnectionMap.erase(conn->fd());  //减少一次引用计数
     //使用runInloop的原因是因为，removeConnection是在handleChannel中处理的，runInloop可以让Connection的最后一次引用计数保存在channel所在的pendingFunctors中，而在执行pendingFunctors的时候，handleChannel必定已经执行结束，并且pendingFunctors执行结束时，最后一次引用计数也减少了从而导致Connection的销毁，此时销毁Connection就是安全的，因此调用runInLoop是有必要的！
 }

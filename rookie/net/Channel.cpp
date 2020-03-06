@@ -62,10 +62,8 @@ void Channel::enableChannel(uint32_t flags,int timeout)
 
     events_ = flags;
 
-    if(timeout!=-1)  //如果设置了超时时间，就计算其超时的时刻
+    if(timeout!=-1)  //如果设置了超时时间
     {
-        gettimeofday(&timeout_, nullptr);
-        timeout_=timeadd(timeout_,timeout);
         events_ |= EV_TIMEOUT;   //EV_TIMEOUT表示channel是一个超时事件
     }
     else if(events_ == EV_TIMEOUT)  //纯超时Channel必须指定超时时间
@@ -73,13 +71,12 @@ void Channel::enableChannel(uint32_t flags,int timeout)
         LOG_WARN<<"Channel::enableChannel EV_TIMEOUT channel should specify param 'timeout' ";
         return;
     }
-    evloop_->runInLoop(std::bind(&EventLoop::updateChannle,evloop_,this,timeout!=-1));//将updateChannel放到io线程中执行，确保Timer和ChannelMap的线程安全
+    evloop_->runInLoop(std::bind(&EventLoop::updateChannle,evloop_,this,timeout));//将updateChannel放到io线程中执行，确保Timer和ChannelMap的线程安全
 }
 
 void Channel::disableChannel()
 {
     evloop_->runInLoop(std::bind(&EventLoop::removeChannle,evloop_,this));  //将removeChannel放到io线程中执行，确保Timer和ChannelMap的线程安全
-    //evloop_->removeChannle(this);
 }
 
 const char* Channel::eventsToString(int events)
@@ -98,3 +95,4 @@ const char* Channel::eventsToString(int events)
             return "NODEF";
     }
 }
+

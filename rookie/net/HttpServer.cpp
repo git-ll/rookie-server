@@ -9,6 +9,114 @@
 
 using namespace rookie;
 
+/*void defaultOnRequest(httpRequest *request, httpResponse *response)   //request已经包含了Http的请求信息，response为响应信息
+{
+    if(request->requestGET())
+    {
+        if (request->isURL("/") || request->isURL("/index.html"))
+        {
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("text/html");
+            response->setBodyFromFile("resource/index.html");
+        }
+        else if (request->isURL("/favicon.ico"))
+        {
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("image/ico");
+            response->setBodyFromFile("dist/images/favicon.ico");
+        }
+        else if (request->isURL("/hello"))
+        {
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("text/plain");
+            response->setBody("HELLO!");
+        }
+        else if (request->isURL("/login.js"))
+        {
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("text/javascript");
+            response->setBodyFromFile("resource/login.js");
+        }
+        else if (request->isURL("/login.css"))
+        {
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("text/css");
+            response->setBodyFromFile("resource/login.css");
+        }
+        else if (request->isURL("/register.html"))
+        {
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("text/html");
+            response->setBodyFromFile("resource/register.html");
+        }
+        else
+        {
+            response->setNotFound();
+        }
+
+    }
+    else if(request->requestPOST())
+    {
+        if (request->isURL("/user/loginin"))  //登录
+        {
+            char username[32];
+            char password[32];
+            sscanf(UrlDecode(request->body()).c_str(),"username=%s password=%s",username,password);
+
+            //数据库验证....
+            LOG_INFO<<"用户名："<<username<<"   密码："<<password;
+
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("text/html");
+            response->setBody("hello!");
+        }
+        else if(request->isURL("/user/register"))
+        {
+            char username[32] = {0};
+            char nickname[32] = {0};
+            char password[32] = {0};
+            char phonenum[11] = {0};
+
+            sscanf(UrlDecode(request->body()).c_str(),"nickname=%s username=%s password=%s phonenum=%s",nickname,username,password,phonenum);
+
+            //数据库插入....
+            LOG_INFO<<"昵称："<<nickname<<"   用户名："<<username<<"   密码："<<password<<"   手机号："<<phonenum;
+
+            response->setStatus(OK);
+            response->setStateReason("OK");
+            response->setContentType("text/html");
+            response->setBody("ok");
+
+        }
+
+
+    }
+
+}*/
+
+/*void printRequest(httpRequest* request)
+{
+    printf("PARSE RESULT:\n");
+    printf("[METHOD] %s\n",request->method_);
+    printf("[URL] %s\n",request->url_);
+    printf("[VERSION] %s\n",request->version_);
+
+    for(auto &i:request->requestHeaders_)
+    {
+        printf("[HEADER] %s [VALUE] %s\n",i.first.c_str(),i.second.c_str());
+    }
+
+    printf("[BODY] %s\n",request->body_.c_str());
+
+}*/
+
 void defaultOnRequest(httpRequest *request, httpResponse *response)   //request已经包含了Http的请求信息，response为响应信息
 {
     if(request->requestGET())

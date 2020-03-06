@@ -29,12 +29,12 @@
 #define EVSTATE_NONE    0x00
 #define EVSTATE_INSERT  0x01
 #define EVSTATE_TIMEOUT 0x02
+#define EVSTATE_ALL EVSTATE_NONE|EVSTATE_INSERT|EVSTATE_TIMEOUT
 
 namespace rookie
 {
     class EventLoop;
     class Epoll;
-    class Timer;
     class Channel
     {
     public:
@@ -43,44 +43,41 @@ namespace rookie
 
         typedef std::function<void()>CallBack;
 
-        void setReadCallBack(const CallBack& r){ ReadCallBack_ = r;}
-        void setWriteCallBack(const CallBack& w){ WriteCallBack_ = w;}
-        void setErrorCallBack(const CallBack& e){ ErrorCallBack_ = e;}
-        void setCloseCallBack(const CallBack& c){ CloseCallBack_ = c;}
+        inline void setReadCallBack(const CallBack& r){ ReadCallBack_ = r;}
+        inline void setWriteCallBack(const CallBack& w){ WriteCallBack_ = w;}
+        inline void setErrorCallBack(const CallBack& e){ ErrorCallBack_ = e;}
+        inline void setCloseCallBack(const CallBack& c){ CloseCallBack_ = c;}
 
-        void enableChannel(uint32_t flags ,int timeout = -1);//timeout为毫秒计
-        void disableChannel();
-
-        void handleChannel();
+        void enableChannel(uint32_t type ,int timeout = -1);//支持EV_READ/EV_WRTE/EV_TIMEOUT    timeout为秒计
+        void disableChannel();  //关闭channel
+        void handleChannel();   //处理channel
         const char* eventsToString(int events);
 
-        int fd(){ return fd_;}
-
-        uint32_t events() { return events_;}     //返回Channel感兴趣的事件
-        uint32_t revents() { return revents_;}   //返回激活的事件
-        int state(){ return state_;}    //获取channel的状态
-        timeval timeout(){ return timeout_;}
-        void setstate(int state){ state_ = state;}   //设置channel的状态
-        void setpriority(int pri){ pri_ = pri;}   //设置Channel的优先级
-
+        int fd() { return fd_;}
+        inline uint32_t events() { return events_;}    //返回Channel感兴趣的事件
+        inline uint32_t revents(){ return revents_;}   //返回激活的事件
+        inline void setevents(uint32_t ev){ events_ = ev;}    //设置感兴趣的事件
+        inline void setrevents(uint32_t rv) { revents_ = rv;}    //设置激活的事件
+        inline int state() { return state_;}    //获取channel的状态
+        inline timeval timeout() { return timeout_;}
+        inline void setstate(int state) { state_ = state;}   //设置channel的状态
+        inline void setpriority(int pri) { pri_ = pri;}   //设置Channel的优先级
+        inline int timerslot() { return tmslot_;}  //获取该channel在定时器中的位置
+        inline void settimerslot(int slot) { tmslot_ = slot;}  //设置在定时器中的位置
     private:
         int fd_;        //相应的文件描述符
         uint32_t events_;    //感兴趣的事件
         uint32_t revents_;    //发生的事件
         EventLoop* evloop_;   //所在的EventLoop
-        timeval timeout_;    //超时时刻，微秒计
+        timeval timeout_;    //超时时刻
         int pri_;       //Channel优先级
         int state_;     //Channel的状态
-        int index_;     //对于非超时Channel，index_为-1，对于超时Channel，index为其在定时器中的索引
+        int tmslot_;     //对于非超时Channel，index_为-1，对于超时Channel，index为其在定时器中的索引
 
         CallBack ReadCallBack_;
         CallBack WriteCallBack_;
         CallBack ErrorCallBack_;
         CallBack CloseCallBack_;
-
-        friend Epoll;
-        friend EventLoop;
-        friend Timer;
     };
 }
 
